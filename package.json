@@ -1,0 +1,54 @@
+{
+  "name": "nuclear-ballet",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Nuclear Ballet strategy game",
+  "author": "Nuclear Ballet",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "start": "npm run build && electron .",
+    "exe": "npm run build && node node_modules/electron/install.js && electron-builder --win portable",
+    "bake": "node scripts/bake-geo.mjs"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.187.0",
+    "electron": "45.3.0",
+    "electron-builder": "^26.18.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "build": {
+    "appId": "com.nuclearballet.game",
+    "productName": "Nuclear Ballet",
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Nuclear Ballet ${version}.exe"
+    }
+  }
+}

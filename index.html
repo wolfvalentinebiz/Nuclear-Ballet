@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#000000" />
+    <title>Nuclear Ballet</title>
+  </head>
+  <body data-phase="menu">
+    <main id="stage">
+      <canvas id="world" width="1920" height="1080" aria-label="Interactive globe of Earth"></canvas>
+      <canvas id="overlay" width="1920" height="1080" aria-hidden="true"></canvas>
+      <canvas id="city-overlay" width="1920" height="1080" aria-hidden="true"></canvas>
+      <canvas id="capital-overlay" width="1920" height="1080" aria-hidden="true"></canvas>
+      <div class="interceptor-cursor" id="interceptor-cursor" hidden aria-hidden="true">
+        GBI RANGE · 1,325 KM
+      </div>
+      <div class="hover-tooltip" id="hover-tooltip" hidden role="tooltip"></div>
+
+      <div class="start-menu" id="start-menu" aria-label="Main menu">
+        <div class="start-menu__content">
+          <h1 class="start-menu__title">NUCLEAR<br />BALLET</h1>
+          <nav class="start-menu__nav" aria-label="Main menu options">
+            <button
+              type="button"
+              class="menu-button"
+              data-menu-action="singleplayer"
+            >
+              SINGLEPLAYER
+            </button>
+            <button
+              type="button"
+              class="menu-button"
+              data-menu-action="multiplayer"
+            >
+              MULTIPLAYER
+            </button>
+            <button type="button" class="menu-button" data-menu-action="settings">
+              SETTINGS
+            </button>
+            <button type="button" class="menu-button" data-menu-action="credits">
+              CREDITS
+            </button>
+          </nav>
+          <p class="start-menu__note" id="menu-note" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="nation-select" id="nation-select" hidden aria-label="Nation select">
+        <div class="nation-select__panel">
+          <p class="screen-eyebrow">SINGLEPLAYER</p>
+          <h1 class="nation-select__title">SELECT A NATION</h1>
+          <p class="nation-select__hint">
+            Click a country on the globe. Its border will turn green.
+          </p>
+          <button type="button" class="menu-button menu-button--back" id="nation-back">
+            BACK
+          </button>
+        </div>
+        <div class="nation-select__action">
+          <button type="button" class="play-nation" id="play-nation" disabled>
+            PLAY
+          </button>
+        </div>
+      </div>
+
+      <section class="chrono" aria-label="Simulation time">
+        <div class="clock-stack">
+          <div
+            class="clock"
+            title="Simulation time — click a country on the globe to show its local time."
+          >
+            <div class="clock__time" id="clock-time">--:--</div>
+            <div class="clock__date" id="clock-date">-- --- ----</div>
+            <div class="clock__meta" id="clock-meta">GMT+0 · UTC</div>
+          </div>
+          <div class="resources" aria-label="Resources">
+            <div
+              class="resource"
+              data-tooltip="COINS · POPULATION TAX 1 PER 1,000 PEOPLE/MONTH · REACTORS 100/DAY"
+            >
+              <span class="resource__icon" role="img" aria-label="Coins">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M5 1h6v1H5zM3 2h10v2H3zM5 4h6v1H5zM5 6h6v1H5zM3 7h10v2H3zM5 9h6v1H5zM5 11h6v1H5zM3 12h10v2H3zM5 14h6v1H5z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="coins-value">0000000000</span>
+            </div>
+            <div
+              class="resource"
+              data-tooltip="RESEARCH POINTS · RESEARCH CENTERS GENERATE 20/DAY · SPENT ON TECHNOLOGY"
+            >
+              <span
+                class="resource__icon"
+                role="img"
+                aria-label="Research points"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M5 1h6v1H5zM6 2h1v4H6zM9 2h1v4H9zM5 6h1v1H5zM10 6h1v1H10zM4 7h1v1H4zM11 7h1v1H11zM3 8h1v1H3zM12 8h1v1H12zM2 9h1v1H2zM13 9h1v1H13zM2 10h1v1H2zM13 10h1v1H13zM1 11h1v1H1zM14 11h1v1H14zM1 12h1v1H1zM14 12h1v1H14zM1 13h1v1H1zM14 13h1v1H14zM1 14h14v1H1zM3 10h10v1H3zM2 11h12v3H2zM5 7h1v1H5zM9 8h1v1H9z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="research-value">0000000000</span>
+            </div>
+            <div
+              class="resource"
+              data-tooltip="MANPOWER · TROOPS AVAILABLE FOR WAR FRONTS · BARRACKS GENERATE 10/DAY"
+            >
+              <span
+                class="resource__icon"
+                role="img"
+                aria-label="Manpower"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M6 1h4v2H6zM5 3h6v4H5zM3 4h2v2H3zM11 4h2v2h-2zM5 7h2v3H5zM9 7h2v3H9zM4 10h3v5H4zM9 10h3v5H9z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="manpower-value">0000000000</span>
+            </div>
+            <div
+              class="resource"
+              data-tooltip="INTERCEPTORS · PRODUCED BY INTERCEPTOR FACTORIES AT 4/DAY"
+            >
+              <span
+                class="resource__icon"
+                role="img"
+                aria-label="Interceptors"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M7 1h2v5H7zM6 3h1v3H6zM9 3h1v3H9zM5 6h6v2H5zM6 8h2v3H6zM4 9H2v1h2zM10 9h2v1h-2zM8 11h2v3H8zM10 9h2v1h-2zM6 13h4v1H6z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="interceptors-value">0000000000</span>
+            </div>
+            <div
+              class="resource"
+              data-tooltip="NUCLEAR WARHEADS · COMPLETED WARHEAD PRODUCTION ORDERS"
+            >
+              <span
+                class="resource__icon"
+                role="img"
+                aria-label="Nuclear warheads"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M7 1h2v4H7zM5 4h1v2H5zM10 4h1v2h-1zM3 6h5v2H3zM8 6h5v2H8zM4 8h2v3H4zM10 8h2v3h-2zM5 11h2v4H5zM9 11h2v4H9zM7 7h2v2H7z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="nukes-value">0000000000</span>
+            </div>
+            <div
+              class="resource"
+              data-tooltip="ICBMS · COMPLETED INTERCONTINENTAL WARHEAD PRODUCTION ORDERS"
+            >
+              <span
+                class="resource__icon"
+                role="img"
+                aria-label="Intercontinental ballistic missiles"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    fill="currentColor"
+                    d="M7 1h2v5H7zM6 4h1v2H6zM9 4h1v2H9zM5 6h6v1H5zM4 7h2v1H4zM10 7h2v1h-2zM8 8h2v2H8zM6 10h1v1H6zM4 12h2v1H4zM2 13h1v1H2zM1 14h1v1H1zM9 11h2v1H9z"
+                  />
+                </svg>
+              </span>
+              <span class="resource__value" id="icbms-value">0000000000</span>
+            </div>
+          </div>
+        </div>
+        <div class="time-controls" role="group" aria-label="Time speed">
+          <button
+            type="button"
+            data-speed="paused"
+            aria-pressed="false"
+            aria-label="Pause time"
+            title="Pause"
+          >
+            <span class="time-icon time-icon--pause" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            data-speed="play"
+            aria-pressed="true"
+            aria-label="Play time, four hours per minute"
+            title="Play · 4 hours per minute"
+          >
+            <span class="time-icon time-icon--play" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            data-speed="fast"
+            aria-pressed="false"
+            aria-label="Fast forward, eight hours per minute"
+            title="Fast forward · 8 hours per minute"
+          >
+            ×2
+          </button>
+          <button
+            type="button"
+            data-speed="quad"
+            aria-pressed="false"
+            aria-label="Quadruple speed, sixteen hours per minute"
+            title="Quadruple speed · 16 hours per minute"
+          >
+            ×4
+          </button>
+        </div>
+      </section>
+
+      <div class="map-toolbar">
+        <aside
+          class="planet-population"
+          id="planet-population"
+          aria-label="World population"
+          title="World population. The red figure is the estimated immediate fatalities of the latest strike."
+        >
+          <span class="planet-population__label">PLANET POPULATION</span>
+          <span class="planet-population__line">
+            <span class="planet-population__value" id="planet-population-value">8,200,000,000</span>
+            <span
+              class="planet-population__delta"
+              id="planet-population-delta"
+              aria-live="polite"
+            ></span>
+          </span>
+          <span class="planet-population__nation" id="nation-population" hidden>
+            <span class="planet-population__label" id="nation-population-label">
+              NATION POPULATION
+            </span>
+            <span class="planet-population__line">
+              <span
+                class="planet-population__value planet-population__value--nation"
+                id="nation-population-value"
+              >0</span>
+            </span>
+          </span>
+        </aside>
+        <div class="map-mode" role="group" aria-label="Map mode">
+          <button type="button" data-mode="terrain" aria-pressed="true">TERRAIN</button>
+          <button type="button" data-mode="population" aria-pressed="false">POPULATION</button>
+          <button type="button" data-mode="natural" aria-pressed="false">NATURAL</button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="war-launch"
+        id="war-open"
+        hidden
+        aria-haspopup="dialog"
+        aria-controls="active-war-window"
+        aria-label="Open active wars"
+      >
+        <span class="war-launch__label">WAR</span>
+        <span class="war-launch__count" id="war-open-count">0</span>
+      </button>
+
+      <div class="map-mode view-mode" role="group" aria-label="View">
+        <button
+          type="button"
+          data-view="earth"
+          aria-pressed="true"
+          title="Earth surface view"
+        >
+          EARTH
+        </button>
+        <button
+          type="button"
+          data-view="system"
+          aria-pressed="false"
+          title="Earth–Moon system view"
+        >
+          ORBIT
+        </button>
+        <button
+          type="button"
+          data-view="moon"
+          aria-pressed="false"
+          title="Moon-focused view"
+        >
+          MOON
+        </button>
+      </div>
+
+      <aside id="legend" class="legend" hidden aria-label="Population density legend">
+        <div class="legend__title">PERSONS / KM²</div>
+        <div class="legend__rows" id="legend-rows"></div>
+      </aside>
+
+      <aside
+        id="natural-legend"
+        class="legend"
+        hidden
+        aria-label="Natural obstacles legend"
+      >
+        <div class="legend__title">DIFFICULT TERRAIN · ×2 DEFENDER</div>
+        <div class="legend__row">
+          <span class="legend__swatch" style="background: #d8d2c0"></span>
+          <span class="legend__label">MOUNTAINS</span>
+        </div>
+        <div class="legend__row">
+          <span class="legend__swatch" style="background: #d8b66d"></span>
+          <span class="legend__label">DESERT</span>
+        </div>
+        <div class="legend__row">
+          <span class="legend__swatch" style="background: #4f8c5b"></span>
+          <span class="legend__label">JUNGLE</span>
+        </div>
+        <div class="legend__row">
+          <span class="legend__swatch" style="background: #6d9b9a"></span>
+          <span class="legend__label">WETLANDS</span>
+        </div>
+        <div class="legend__row">
+          <span class="legend__swatch" style="background: #c4e0e7"></span>
+          <span class="legend__label">ICE / TUNDRA</span>
+        </div>
+      </aside>
+
+      <aside class="build-menu" aria-label="Build buildings">
+        <div class="build-menu__commands">
+          <button type="button" class="command-button" id="research-open">
+            <span class="command-button__icon" aria-hidden="true">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M5 1h6v1H5zM6 2h1v4H6zM9 2h1v4H9zM5 6h1v1H5zM10 6h1v1H10zM4 7h1v1H4zM11 7h1v1H11zM3 8h1v1H3zM12 8h1v1H12zM2 9h1v1H2zM13 9h1v1H13zM2 10h1v1H2zM13 10h1v1H13zM1 11h1v1H1zM14 11h1v1H14zM1 12h1v1H1zM14 12h1v1H14zM1 13h1v1H1zM14 13h1v1H14zM1 14h14v1H1zM3 10h10v1H3zM2 11h12v3H2z"
+                />
+              </svg>
+            </span>
+            <span>RESEARCH</span>
+          </button>
+          <button type="button" class="command-button" id="production-open">
+            <span class="command-button__icon command-button__icon--gear" aria-hidden="true">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M7 1h2v2h1V1h2v3h1v2h2v2h-1v1h2v2h-2v1h-2v2H9v-2H7v2H5v-3H3v-2H1V8h2V6H1V4h2V2h2v1h1V1zM6 6h4v4H6z"
+                />
+              </svg>
+            </span>
+            <span>PRODUCTION</span>
+          </button>
+        </div>
+        <div class="build-menu__title">BUILD</div>
+        <div class="build-menu__buttons" id="building-buttons"></div>
+        <p class="build-menu__note" id="build-note" aria-live="polite"></p>
+      </aside>
+
+      <aside class="outliner" id="outliner" aria-label="Production outliner"></aside>
+
+      <div class="nuke-controls" id="nuke-controls" hidden aria-label="Nuclear strike controls">
+        <div class="nuke-files" id="nuke-files" aria-label="War plan files"></div>
+        <span class="nuke-platform-status" id="nuke-platform-status" aria-live="polite">
+          NO LAUNCH PLATFORM
+        </span>
+      </div>
+
+      <div class="nation-menu nuke-menu" id="nuke-menu" hidden role="menu" aria-label="Select a warhead">
+        <div class="nation-menu__title">NUCLEAR TARGETING</div>
+        <div class="nation-menu__status" id="nuke-menu-status">SELECT A WARHEAD</div>
+        <div class="nuke-menu__list" id="nuke-menu-list"></div>
+      </div>
+
+      <button
+        type="button"
+        class="godmode-toggle"
+        id="godmode-toggle"
+        aria-pressed="false"
+        title="Open testing cheats"
+      >
+        GODMODE
+      </button>
+
+      <div class="nation-menu" id="nation-menu" hidden role="menu" aria-label="Nation diplomacy">
+        <div class="nation-menu__title" id="nation-menu-title"></div>
+        <div class="nation-menu__status" id="nation-menu-status"></div>
+        <div class="nation-menu__metrics" aria-label="Diplomatic standing">
+          <div class="nation-menu__metric">
+            <span>OPINION</span>
+            <span id="nation-opinion">+25</span>
+          </div>
+          <div class="nation-menu__metric">
+            <span>POWER RATIO</span>
+            <span id="nation-power">1.00×</span>
+          </div>
+          <div class="nation-menu__metric nation-menu__metric--acceptance">
+            <span>ACCEPTANCE</span>
+            <span id="nation-acceptance">PACT +13 · ALLIANCE -13</span>
+          </div>
+        </div>
+        <button type="button" class="nation-menu__action" id="improve-opinion">
+          IMPROVE RELATIONS
+        </button>
+        <button type="button" class="nation-menu__action" id="harm-relations">
+          HARM RELATIONS
+        </button>
+        <button type="button" class="nation-menu__action" id="propose-pact">
+          DEFENSIVE PACT
+        </button>
+        <button type="button" class="nation-menu__action" id="propose-alliance">
+          ALLIANCE
+        </button>
+        <button type="button" class="nation-menu__action nation-menu__action--war" id="declare-war">
+          DECLARE WAR
+        </button>
+      </div>
+
+      <div class="toast" id="game-toast" hidden role="status" aria-live="polite"></div>
+      <div class="nuclear-flash" id="nuclear-flash" aria-hidden="true"></div>
+
+      <section class="panel-screen" id="godmode-window" hidden aria-label="Godmode testing cheats">
+        <div class="panel godmode-panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">TESTING OVERRIDE</p>
+              <h2 class="panel__title">GODMODE</h2>
+            </div>
+            <button
+              type="button"
+              class="panel__close"
+              id="godmode-close"
+              aria-label="Close Godmode"
+            >
+              ×
+            </button>
+          </header>
+          <div class="godmode-body">
+            <p class="godmode-intro">
+              Testing cheats. Changes apply immediately while checked.
+            </p>
+            <div class="godmode-options">
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="unlimitedMoney" />
+                <span class="godmode-option__copy">
+                  <strong>Unlimited Money</strong>
+                  <small>The national treasury refills automatically.</small>
+                </span>
+              </label>
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="unlimitedResearch" />
+                <span class="godmode-option__copy">
+                  <strong>Unlimited Research</strong>
+                  <small>Research points refill automatically.</small>
+                </span>
+              </label>
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="unlimitedManpower" />
+                <span class="godmode-option__copy">
+                  <strong>Unlimited Manpower</strong>
+                  <small>Recruitment reserves refill automatically.</small>
+                </span>
+              </label>
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="unlimitedNukes" />
+                <span class="godmode-option__copy">
+                  <strong>Unlimited Nukes</strong>
+                  <small>Every nuclear warhead type stays fully stocked.</small>
+                </span>
+              </label>
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="instantBuild" />
+                <span class="godmode-option__copy">
+                  <strong>Instant Build</strong>
+                  <small>New buildings complete immediately.</small>
+                </span>
+              </label>
+              <label class="godmode-option">
+                <input type="checkbox" data-cheat="infiniteInterceptors" />
+                <span class="godmode-option__copy">
+                  <strong>Infinite Interceptors</strong>
+                  <small>Interceptor stock refills automatically.</small>
+                </span>
+              </label>
+            </div>
+          </div>
+          <footer class="godmode-footer">
+            <span>CHEATS ARE ACTIVE ONLY WHILE CHECKED</span>
+            <span>NO SAVE DATA IS AFFECTED</span>
+          </footer>
+        </div>
+      </section>
+
+      <section class="panel-screen" id="production-window" hidden aria-label="Production">
+        <div class="panel production-panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">INDUSTRIAL COMMAND</p>
+              <h2 class="panel__title">PRODUCTION</h2>
+            </div>
+            <button type="button" class="panel__close" id="production-close" aria-label="Close production">
+              ×
+            </button>
+          </header>
+          <div class="production-tabs" id="production-tabs" role="tablist"></div>
+          <div class="production-factory-line" id="production-factory-line"></div>
+          <div class="production-body">
+            <section class="production-column" aria-label="Production catalogue">
+              <h3 class="production-column__title">AVAILABLE SYSTEMS</h3>
+              <div class="production-items" id="production-items"></div>
+            </section>
+            <section class="production-column production-column--queue" aria-label="Build queue">
+              <h3 class="production-column__title">BUILD QUEUE</h3>
+              <div class="production-queue" id="production-queue"></div>
+            </section>
+          </div>
+          <footer class="production-footer">
+            <span id="production-inventory"></span>
+            <span class="production-message" id="production-message" aria-live="polite"></span>
+          </footer>
+        </div>
+      </section>
+
+      <section class="panel-screen" id="research-window" hidden aria-label="Research">
+        <div class="panel research-panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">NATIONAL LABORATORIES</p>
+              <h2 class="panel__title">RESEARCH</h2>
+            </div>
+            <button type="button" class="panel__close" id="research-close" aria-label="Close research">
+              ×
+            </button>
+          </header>
+          <div class="research-summary" id="research-summary"></div>
+          <div class="research-branches" id="research-branches"></div>
+          <footer class="research-footer">
+            <span id="research-points"></span>
+            <span class="research-message" id="research-message" aria-live="polite"></span>
+          </footer>
+        </div>
+      </section>
+
+      <section class="panel-screen" id="war-window" hidden aria-label="Declare war">
+        <div class="panel war-panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">CASUS BELLI</p>
+              <h2 class="panel__title">DECLARE WAR</h2>
+            </div>
+            <button type="button" class="panel__close" id="war-close" aria-label="Cancel war declaration">
+              ×
+            </button>
+          </header>
+          <div class="war-panel__scroll">
+            <p class="war-panel__target">
+              TARGET · <span id="war-target-name"></span>
+            </p>
+            <p class="war-panel__intro">
+              The defender's defensive pacts and alliances will be called to war.
+              Only your alliances join an offensive. Drag the globe on the left to
+              inspect the alignment before you commit.
+            </p>
+            <div class="war-legend">
+              <span><i class="war-swatch war-swatch--target"></i>TARGET</span>
+              <span><i class="war-swatch war-swatch--enemy"></i>DEFENDER ALLIES</span>
+              <span><i class="war-swatch war-swatch--ally"></i>YOUR SIDE</span>
+              <span><i class="war-swatch war-swatch--uninvolved"></i>UNINVOLVED</span>
+            </div>
+            <div class="war-lists">
+              <div>
+                <h3>DEFENDING COALITION</h3>
+                <p id="war-enemy-list"></p>
+              </div>
+              <div>
+                <h3>YOUR SIDE</h3>
+                <p id="war-player-list"></p>
+              </div>
+              <div>
+                <h3>UNINVOLVED</h3>
+                <p id="war-uninvolved"></p>
+              </div>
+            </div>
+          </div>
+          <div class="war-panel__actions">
+            <button type="button" class="panel-action" id="war-cancel">WITHDRAW</button>
+            <button type="button" class="panel-action panel-action--danger" id="war-confirm">
+              DECLARE WAR
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-screen" id="active-war-window" hidden aria-label="Active wars">
+        <div class="panel active-war-panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">WAR CABINET</p>
+              <h2 class="panel__title">ACTIVE WARS</h2>
+            </div>
+            <button
+              type="button"
+              class="panel__close"
+              id="active-war-close"
+              aria-label="Close active wars"
+            >
+              ×
+            </button>
+          </header>
+          <div
+            class="active-war-tabs"
+            id="active-war-tabs"
+            role="tablist"
+            aria-label="Active wars"
+          ></div>
+          <div class="active-war-panels" id="active-war-panels"></div>
+          <footer class="active-war-footer">
+            <span id="active-war-note"></span>
+          </footer>
+        </div>
+      </section>
+
+      <div id="boot" class="boot">
+        <div class="boot__inner">
+          <div class="boot__title">NUCLEAR BALLET</div>
+          <div class="boot__track"><span id="boot-fill"></span></div>
+          <div id="boot-status" class="boot__status">ACQUIRING EARTH DATA</div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
